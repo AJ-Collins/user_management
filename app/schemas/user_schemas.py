@@ -1,5 +1,5 @@
 from builtins import ValueError, any, bool, str
-from pydantic import BaseModel, EmailStr, Field, validator, root_validator
+from pydantic import BaseModel, EmailStr, Field, validator, root_validator, HttpUrl
 from typing import Optional, List
 from datetime import datetime
 from enum import Enum
@@ -24,7 +24,7 @@ class UserBase(BaseModel):
     last_name: Optional[str] = Field(None, example="Doe")
     bio: Optional[str] = Field(None, example="Experienced software developer specializing in web applications.")
     profile_picture_url: Optional[str] = Field(None, example="https://example.com/profiles/john.jpg")
-    linkedin_profile_url: Optional[str] =Field(None, example="https://linkedin.com/in/johndoe")
+    linkedin_profile_url: Optional[str] = Field(None, example="https://linkedin.com/in/johndoe")
     github_profile_url: Optional[str] = Field(None, example="https://github.com/johndoe")
     role: UserRole
 
@@ -36,6 +36,14 @@ class UserBase(BaseModel):
 class UserCreate(UserBase):
     email: EmailStr = Field(..., example="john.doe@example.com")
     password: str = Field(..., min_length=8, example="Secure*1234")
+    nickname: str
+    first_name: Optional[str]
+    last_name: Optional[str]
+    bio: Optional[str]
+    profile_picture_url: Optional[HttpUrl]
+    linkedin_profile_url: Optional[HttpUrl]
+    github_profile_url: Optional[HttpUrl]
+    role: Optional[str]
 
     @validator('password')
     def password_must_not_be_blank(cls, value):
@@ -44,6 +52,20 @@ class UserCreate(UserBase):
         if len(value) < 8:
             raise ValueError("Password must be at least 8 characters long.")
         return value
+    
+    @validator("github_profile_url")
+    def validate_github_url(cls, v: HttpUrl):
+        v_str = str(v)
+        if not v_str.startswith("https://github.com/"):
+            raise ValueError("GitHub profile URL must start with https://github.com/")
+        return v
+
+    @validator("linkedin_profile_url")
+    def validate_linkedin_url(cls, v: HttpUrl):
+        v_str = str(v)
+        if not re.match(r"^https://(www\.)?linkedin\.com/in/[\w-]+/?$", v_str):
+            raise ValueError("LinkedIn profile URL must match https://linkedin.com/in/username")
+        return v
 
 class UserUpdate(UserBase):
     email: Optional[EmailStr] = Field(None, example="john.doe@example.com")
