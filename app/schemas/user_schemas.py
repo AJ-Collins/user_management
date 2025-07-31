@@ -35,7 +35,15 @@ class UserBase(BaseModel):
 
 class UserCreate(UserBase):
     email: EmailStr = Field(..., example="john.doe@example.com")
-    password: str = Field(..., example="Secure*1234")
+    password: str = Field(..., min_length=8, example="Secure*1234")
+
+    @validator('password')
+    def password_must_not_be_blank(cls, value):
+        if not value or not value.strip():
+            raise ValueError("Password must not be empty or blank.")
+        if len(value) < 8:
+            raise ValueError("Password must be at least 8 characters long.")
+        return value
 
 class UserUpdate(UserBase):
     email: Optional[EmailStr] = Field(None, example="john.doe@example.com")
