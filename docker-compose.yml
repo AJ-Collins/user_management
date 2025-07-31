@@ -40,6 +40,9 @@ services:
     networks:
       - app-network
 
+    ports:
+      - "8000:8000"
+
   nginx:
     image: nginx:latest
     ports:
