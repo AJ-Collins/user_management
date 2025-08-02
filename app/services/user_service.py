@@ -33,7 +33,16 @@ class UserService:
 
     @classmethod
     async def _fetch_user(cls, session: AsyncSession, **filters) -> Optional[User]:
-        query = select(User).filter_by(**filters)
+        query = select(User)
+
+        # Special case for email filter
+        if "email" in filters:
+            email = filters.pop("email")
+            query = query.where(func.lower(User.email) == email.lower())
+
+        for key, value in filters.items():
+            query = query.where(getattr(User, key) == value)
+
         result = await cls._execute_query(session, query)
         return result.scalars().first() if result else None
 
