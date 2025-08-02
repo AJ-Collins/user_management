@@ -36,6 +36,7 @@ class UserBase(BaseModel):
 class UserCreate(UserBase):
     email: EmailStr = Field(..., example="john.doe@example.com")
     password: str = Field(..., min_length=8, example="Secure*1234")
+    nickname: str = Field(..., max_length=30)
 
     @validator('password')
     def password_must_not_be_blank(cls, value):
